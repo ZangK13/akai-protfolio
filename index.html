@@ -3,723 +3,841 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AKai | 摄影作品集</title>
+    <title>AKai | Visual Artist</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Space Grotesk', 'sans-serif'],
-                        mono: ['Courier New', 'monospace'],
-                    },
-                    colors: {
-                        gray: {
-                            850: '#1f2937',
-                            900: '#111827',
-                            950: '#030712',
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 1s ease-in-out',
-                        'slide-up': 'slideUp 0.8s ease-out',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(30px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            --neon-blue: #00d9ff;
+            --neon-purple: #b829dd;
+            --neon-lime: #ccff00;
+            --deep-black: #000000;
+            --dark-gray: #0a0a0a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            background: linear-gradient(135deg, #000000 0%, #111827 50%, #000000 100%);
+            font-family: 'Inter', sans-serif;
+            background: var(--deep-black);
             color: #ffffff;
             overflow-x: hidden;
-        }
-        
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #000000;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
+            cursor: none;
         }
 
-        #particle-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .ascii-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .glitch {
-            position: relative;
-        }
-        .glitch::before,
-        .glitch::after {
-            content: attr(data-text);
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        .glitch::before {
-            left: 2px;
-            text-shadow: -1px 0 #ff00c1;
-            clip: rect(44px, 450px, 56px, 0);
-            animation: glitch-anim 5s infinite linear alternate-reverse;
-        }
-        .glitch::after {
-            left: -2px;
-            text-shadow: -1px 0 #00fff9;
-            clip: rect(44px, 450px, 56px, 0);
-            animation: glitch-anim2 5s infinite linear alternate-reverse;
-        }
-        @keyframes glitch-anim {
-            0% { clip: rect(31px, 9999px, 94px, 0); }
-            20% { clip: rect(89px, 9999px, 5px, 0); }
-            40% { clip: rect(15px, 9999px, 99px, 0); }
-            60% { clip: rect(68px, 9999px, 54px, 0); }
-            80% { clip: rect(23px, 9999px, 73px, 0); }
-            100% { clip: rect(91px, 9999px, 12px, 0); }
-        }
-        @keyframes glitch-anim2 {
-            0% { clip: rect(65px, 9999px, 99px, 0); }
-            20% { clip: rect(12px, 9999px, 43px, 0); }
-            40% { clip: rect(78px, 9999px, 11px, 0); }
-            60% { clip: rect(34px, 9999px, 67px, 0); }
-            80% { clip: rect(56px, 9999px, 23px, 0); }
-            100% { clip: rect(89px, 9999px, 45px, 0); }
-        }
-
-        .portfolio-item {
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .portfolio-item:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-        }
-        .portfolio-item img {
-            transition: all 0.5s ease;
-            filter: grayscale(100%) contrast(1.1);
-        }
-        .portfolio-item:hover img {
-            filter: grayscale(0%) contrast(1.2);
-        }
-
-        .nav-link {
-            position: relative;
-            overflow: hidden;
-        }
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background: #ffffff;
-            transition: width 0.3s ease;
-        }
-        .nav-link:hover::after {
-            width: 100%;
-        }
-
-        .section {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.8s ease-out;
-        }
-        .section.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        input, textarea {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s ease;
-        }
-        input:focus, textarea:focus {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.3);
-            outline: none;
-        }
-
-        .custom-cursor {
-            width: 20px;
-            height: 20px;
+        .cursor {
+            width: 20px; height: 20px;
             border: 1px solid rgba(255,255,255,0.5);
             border-radius: 50%;
-            position: fixed;
-            pointer-events: none;
-            z-index: 9999;
-            transition: transform 0.1s ease;
-            mix-blend-mode: difference;
+            position: fixed; pointer-events: none;
+            z-index: 9999; mix-blend-mode: difference;
+            transition: transform 0.2s, width 0.2s, height 0.2s;
+        }
+        .cursor.hover { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-color: var(--neon-blue); }
+
+        /* Loading Screen - 保持不变 */
+        .loader {
+            position: fixed; inset: 0; background: #fff; z-index: 10000;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .film-grain {
+            position: absolute; inset: 0; opacity: 0.15; z-index: 1; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            animation: grain 0.4s steps(4) infinite;
+        }
+        @keyframes grain {
+            0%, 100% { transform: translate(0, 0); } 10% { transform: translate(-2%, -2%); } 20% { transform: translate(2%, 2%); }
+            30% { transform: translate(-1%, 1%); } 40% { transform: translate(1%, -1%); } 50% { transform: translate(-2%, 2%); }
+            60% { transform: translate(2%, -2%); } 70% { transform: translate(-1%, -1%); } 80% { transform: translate(1%, 1%); }
+            90% { transform: translate(2%, -1%); }
+        }
+        .scramble-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 20; display: flex; gap: 0.05em; }
+        .scramble-char {
+            display: inline-block; font-size: clamp(4rem, 15vw, 12rem); font-weight: 800; color: #000;
+            font-family: 'Space Grotesk', sans-serif; min-width: 0.3em; opacity: 0;
+            transform: translateY(100%) skewY(10deg); filter: blur(10px);
+        }
+        .glitch-wrapper { position: relative; z-index: 10; text-align: center; mix-blend-mode: difference; opacity: 0; transform: scale(0.8); }
+        .glitch-text {
+            font-size: clamp(4rem, 15vw, 12rem); font-weight: 800; letter-spacing: -0.04em; line-height: 0.9;
+            color: #000; position: relative; display: inline-block; text-transform: uppercase; font-family: 'Space Grotesk', sans-serif;
+        }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff;
+        }
+        .glitch-text::before { left: 2px; text-shadow: -2px 0 var(--neon-blue); clip: rect(24px, 550px, 90px, 0); animation: glitch-anim-2 3s infinite linear alternate-reverse; }
+        .glitch-text::after { left: -2px; text-shadow: -2px 0 var(--neon-purple); clip: rect(85px, 550px, 140px, 0); animation: glitch-anim 2.5s infinite linear alternate-reverse; }
+        @keyframes glitch-anim {
+            0% { clip: rect(14px, 9999px, 127px, 0); } 20% { clip: rect(66px, 9999px, 17px, 0); } 40% { clip: rect(122px, 9999px, 78px, 0); }
+            60% { clip: rect(34px, 9999px, 12px, 0); } 80% { clip: rect(89px, 9999px, 145px, 0); } 100% { clip: rect(12px, 9999px, 67px, 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(65px, 9999px, 119px, 0); } 20% { clip: rect(12px, 9999px, 34px, 0); } 40% { clip: rect(89px, 9999px, 12px, 0); }
+            60% { clip: rect(145px, 9999px, 67px, 0); } 80% { clip: rect(34px, 9999px, 123px, 0); } 100% { clip: rect(78px, 9999px, 12px, 0); }
+        }
+        .scan-bar { position: absolute; left: 0; width: 100%; height: 2px; background: rgba(0, 217, 255, 0.5); box-shadow: 0 0 10px var(--neon-blue); z-index: 5; opacity: 0; top: 0; }
+        .rgb-layer { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 8; pointer-events: none; opacity: 0; }
+        .rgb-channel { position: absolute; font-size: clamp(4rem, 15vw, 12rem); font-weight: 800; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; mix-blend-mode: multiply; opacity: 0.8; }
+        .rgb-r { color: #ff0000; transform: translateX(-3px); }
+        .rgb-g { color: #00ff00; transform: translateX(0); }
+        .rgb-b { color: #0000ff; transform: translateX(3px); }
+        .accent-line { position: absolute; bottom: 30%; left: 50%; transform: translateX(-50%); width: 0; height: 2px; background: var(--neon-lime); z-index: 10; box-shadow: 0 0 20px var(--neon-lime); }
+        .status-tag {
+            position: absolute; bottom: 25%; left: 50%; transform: translateX(-50%); background: var(--neon-lime);
+            color: #000; font-size: 0.7rem; font-weight: 800; padding: 6px 12px; text-transform: uppercase;
+            letter-spacing: 0.15em; font-family: 'Space Grotesk', sans-serif; opacity: 0;
+            clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+        }
+
+        /* ===== 赛博朋克过渡特效层 ===== */
+        .cyber-transition {
+            position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+            background: var(--deep-black); opacity: 0;
+            overflow: hidden;
+        }
+
+        /* 数字雨背景 */
+        .digital-rain {
+            position: absolute; inset: 0; opacity: 0;
+            background: linear-gradient(180deg, 
+                rgba(0,0,0,0) 0%, 
+                rgba(0,217,255,0.03) 50%, 
+                rgba(0,0,0,0) 100%);
+            background-size: 100% 4px;
+        }
+        .rain-column {
+            position: absolute; top: -100%; width: 2px;
+            background: linear-gradient(to bottom, transparent, var(--neon-blue), transparent);
+            opacity: 0.6; filter: blur(1px);
+        }
+
+        /* HUD 扫描框 */
+        .hud-frame {
+            position: absolute; inset: 10%; border: 1px solid rgba(0,217,255,0.3); opacity: 0;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        }
+        .hud-corner {
+            position: absolute; width: 40px; height: 40px;
+            border: 2px solid var(--neon-blue); opacity: 0;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+        .hud-corner.tl { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+        .hud-corner.tr { top: -2px; right: -2px; border-left: 0; border-bottom: 0; }
+        .hud-corner.bl { bottom: -2px; left: -2px; border-right: 0; border-top: 0; }
+        .hud-corner.br { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+        /* 终端文字 */
+        .terminal-text {
+            position: absolute; bottom: 15%; left: 10%;
+            font-family: 'Space Grotesk', monospace; font-size: 0.8rem;
+            color: var(--neon-blue); text-transform: uppercase;
+            letter-spacing: 0.2em; opacity: 0;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+        .cursor-blink { animation: blink 0.5s infinite; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+        /* 网格线 */
+        .cyber-grid {
+            position: absolute; inset: 0;
+            background-image: 
+                linear-gradient(rgba(0,217,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,217,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0; transform: perspective(500px) rotateX(60deg) translateY(100px);
+            transform-origin: center bottom;
+        }
+
+        /* 故障块 */
+        .glitch-blocks {
+            position: absolute; inset: 0; overflow: hidden;
+        }
+        .glitch-block {
+            position: absolute; left: 0; width: 100%; height: 12.5%;
+            opacity: 0; transform: translateX(-100%);
+        }
+        .glitch-block:nth-child(odd) { background: rgba(0,217,255,0.2); }
+        .glitch-block:nth-child(even) { background: rgba(184,41,221,0.2); }
+        .glitch-block:nth-child(3n) { background: rgba(204,255,0,0.15); }
+
+        /* 水平扫描线 */
+        .cyber-scanline {
+            position: absolute; left: 0; width: 100%; height: 2px;
+            background: var(--neon-blue); box-shadow: 0 0 20px var(--neon-blue), 0 0 40px var(--neon-blue);
+            opacity: 0; top: 0;
+        }
+
+        /* 数据解码层 */
+        .data-decode {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-family: 'Space Grotesk', sans-serif; font-size: 4rem; font-weight: 800;
+            color: var(--neon-lime); opacity: 0; letter-spacing: 0.5em;
+            text-shadow: 0 0 20px var(--neon-lime);
+        }
+
+        /* 霓虹边框脉冲 */
+        .neon-pulse {
+            position: absolute; inset: 0; border: 2px solid transparent; opacity: 0;
+        }
+        .neon-pulse.active {
+            border-color: var(--neon-blue);
+            box-shadow: inset 0 0 50px rgba(0,217,255,0.2), 0 0 50px rgba(0,217,255,0.2);
+        }
+
+        /* 其他原有样式保持不变 */
+        .glitch { position: relative; display: inline-block; }
+        .glitch::before, .glitch::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--deep-black);
+        }
+        .glitch::before { left: 2px; text-shadow: -1px 0 var(--neon-purple); clip: rect(24px, 550px, 90px, 0); animation: glitch-anim-2 3s infinite linear alternate-reverse; }
+        .glitch::after { left: -2px; text-shadow: -1px 0 var(--neon-blue); clip: rect(85px, 550px, 140px, 0); animation: glitch-anim 2.5s infinite linear alternate-reverse; }
+
+        .nav-fixed {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding: 2rem 3rem;
+            display: flex; justify-content: space-between; align-items: center; mix-blend-mode: difference;
+            opacity: 0; transform: translateY(-20px); filter: blur(10px);
+        }
+        .nav-links { display: flex; gap: 3rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em; font-weight: 300; }
+        .nav-links a { color: #fff; text-decoration: none; position: relative; opacity: 0.7; transition: opacity 0.3s; }
+        .nav-links a:hover { opacity: 1; }
+        .nav-links a::after { content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 1px; background: var(--neon-blue); transition: width 0.3s; }
+        .nav-links a:hover::after { width: 100%; }
+
+        .phase-section {
+            position: relative; width: 100%; height: 100vh; overflow: hidden;
+            display: flex; align-items: center; opacity: 0; transform: scale(1.1); filter: blur(5px);
+        }
+        .phase-section.revealed { opacity: 1; transform: scale(1); filter: blur(0px); transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0; transform: scale(1.2); transition: opacity 2s ease, transform 2s ease; }
+        #bg-canvas.revealed { opacity: 0.6; transform: scale(1); }
+
+        .content { position: relative; z-index: 10; padding: 0 10vw; max-width: 60%; opacity: 0; transform: translateY(40px); }
+        .content.revealed { opacity: 1; transform: translateY(0); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.4s; }
+
+        .phase-tag {
+            background: var(--neon-lime); color: #000; font-size: 0.7rem; font-weight: 800;
+            padding: 4px 8px; text-transform: uppercase; letter-spacing: 0.1em;
+            display: inline-block; margin-bottom: 1rem; font-family: 'Space Grotesk', sans-serif;
+            opacity: 0; transform: translateX(-20px);
+        }
+        .phase-tag.revealed { opacity: 1; transform: translateX(0); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.6s; }
+
+        .phase-title { font-size: clamp(2rem, 5vw, 4rem); font-weight: 800; line-height: 1.1; margin-bottom: 2rem; font-family: 'Space Grotesk', sans-serif; letter-spacing: -0.02em; }
+        .phase-desc { font-size: 0.9rem; line-height: 1.8; opacity: 0.7; max-width: 400px; margin-bottom: 3rem; font-weight: 300; }
+        .cta-button {
+            display: inline-flex; align-items: center; gap: 1rem; border: 1px solid rgba(255,255,255,0.3);
+            padding: 1rem 2rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.2em;
+            cursor: pointer; transition: all 0.3s; background: transparent; color: #fff; position: relative; overflow: hidden;
+        }
+        .cta-button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; }
+        .cta-button:hover::before { left: 100%; }
+        .cta-button:hover { border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(0,217,255,0.3); }
+
+        .side-info { position: absolute; right: 3rem; bottom: 3rem; text-align: right; font-size: 0.75rem; opacity: 0.5; font-family: 'Space Grotesk', sans-serif; }
+        .tvl-display { position: absolute; right: 3rem; top: 50%; transform: translateY(-50%); text-align: right; font-family: 'Space Grotesk', sans-serif; opacity: 0; }
+        .tvl-display.revealed { opacity: 1; transition: opacity 1s ease 1s; }
+        .tvl-amount { font-size: 1.2rem; font-weight: 700; color: #fff; }
+        .tvl-label { font-size: 0.7rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .progress-dots { position: fixed; top: 50%; right: 3rem; transform: translateY(-50%); display: flex; flex-direction: column; gap: 1rem; z-index: 100; opacity: 0; }
+        .progress-dots.revealed { opacity: 1; transition: opacity 1s ease 1.2s; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: all 0.3s; position: relative; }
+        .dot.active { background: var(--neon-blue); box-shadow: 0 0 10px var(--neon-blue); }
+        .dot::after { content: ''; position: absolute; inset: -4px; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; opacity: 0; transition: opacity 0.3s; }
+        .dot:hover::after { opacity: 1; }
+
+        .audio-hint { position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%); font-size: 0.7rem; opacity: 0.4; text-transform: uppercase; letter-spacing: 0.2em; display: flex; align-items: center; gap: 0.5rem; }
+        .audio-icon { width: 40px; height: 40px; border: 1px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; }
+        .audio-icon::before { content: ''; position: absolute; inset: -5px; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+        .scroll-hint { position: absolute; bottom: 3rem; left: 3rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.2em; opacity: 0; display: flex; align-items: center; gap: 1rem; }
+        .scroll-hint.revealed { opacity: 0.5; transition: opacity 1s ease 1.4s; }
+        .scroll-line { width: 60px; height: 1px; background: rgba(255,255,255,0.3); position: relative; overflow: hidden; }
+        .scroll-line::after { content: ''; position: absolute; width: 100%; height: 100%; background: #fff; animation: scrollLine 2s infinite; }
+        @keyframes scrollLine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+        .img-container { position: absolute; right: 10%; top: 50%; transform: translateY(-50%) translateX(100px); width: 30vw; height: 70vh; overflow: hidden; opacity: 0; transition: opacity 1s, transform 1s; }
+        .img-container.active { opacity: 1; transform: translateY(-50%) translateX(0); }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%) contrast(1.2); transition: filter 1s, transform 5s; }
+        .img-container:hover img { filter: grayscale(0%) contrast(1.1); transform: scale(1.05); }
+        .glitch-overlay { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,217,255,0.1) 2px, rgba(0,217,255,0.1) 4px); pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+        .img-container:hover .glitch-overlay { opacity: 1; animation: glitchLines 0.3s infinite; }
+        @keyframes glitchLines { 0% { transform: translateY(0); } 100% { transform: translateY(4px); } }
+
+        .phase-1 { --accent: var(--neon-blue); } .phase-2 { --accent: var(--neon-purple); } .phase-3 { --accent: #ff3366; } .phase-4 { --accent: var(--neon-lime); } .phase-5 { --accent: #ffffff; }
+
+        @media (max-width: 768px) {
+            .content { max-width: 90%; padding: 0 5vw; } .img-container { display: none; } .tvl-display { display: none; }
+            .cursor { display: none; } body { cursor: auto; }
         }
     </style>
 </head>
-<body class="antialiased selection:bg-white selection:text-black">
+<body>
 
-    <canvas id="particle-canvas"></canvas>
-    <div class="ascii-overlay"></div>
-    <div class="custom-cursor hidden md:block" id="cursor"></div>
-
-    <nav class="fixed top-0 w-full z-50 backdrop-blur-md bg-black/30 border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="font-display text-2xl font-bold tracking-tighter glitch" data-text="AKai.">AKai.</div>
-            <div class="hidden md:flex space-x-8 font-mono text-sm tracking-widest uppercase">
-                <a href="#home" class="nav-link hover:text-gray-300 transition-colors">首页</a>
-                <a href="#portfolio" class="nav-link hover:text-gray-300 transition-colors">作品集</a>
-                <a href="#about" class="nav-link hover:text-gray-300 transition-colors">关于我</a>
-                <a href="#contact" class="nav-link hover:text-gray-300 transition-colors">联系</a>
-            </div>
-            <button id="mobile-menu-btn" class="md:hidden text-white">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                </svg>
-            </button>
+    <!-- Loading Screen - 保持不变 -->
+    <div class="loader" id="loader">
+        <div class="film-grain"></div>
+        <div class="scan-bar" id="scanBar"></div>
+        <div class="rgb-layer" id="rgbLayer">
+            <div class="rgb-channel rgb-r">AKAI</div>
+            <div class="rgb-channel rgb-g">AKAI</div>
+            <div class="rgb-channel rgb-b">AKAI</div>
         </div>
-        <div id="mobile-menu" class="hidden md:hidden bg-black/95 border-t border-white/10">
-            <div class="flex flex-col p-6 space-y-4 font-mono text-sm">
-                <a href="#home" class="hover:text-gray-300">首页</a>
-                <a href="#portfolio" class="hover:text-gray-300">作品集</a>
-                <a href="#about" class="hover:text-gray-300">关于我</a>
-                <a href="#contact" class="hover:text-gray-300">联系</a>
-            </div>
+        <div class="scramble-container" id="scrambleContainer"></div>
+        <div class="glitch-wrapper" id="glitchWrapper">
+            <div class="glitch-text" data-text="AKAI">AKAI</div>
         </div>
-    </nav>
+        <div class="accent-line" id="accentLine"></div>
+        <div class="status-tag" id="statusTag">System Initializing</div>
+    </div>
 
-    <section id="home" class="relative min-h-screen flex items-center justify-center z-10">
-        <div class="absolute inset-0 z-0">
-            <img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=1920&q=80" 
-                 alt="Background" 
-                 class="w-full h-full object-cover opacity-30 grayscale">
-            <div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black"></div>
+    <!-- ===== 赛博朋克过渡层 ===== -->
+    <div class="cyber-transition" id="cyberTransition">
+        <div class="digital-rain" id="digitalRain"></div>
+        <div class="cyber-grid" id="cyberGrid"></div>
+        
+        <div class="hud-frame" id="hudFrame">
+            <div class="hud-corner tl"></div>
+            <div class="hud-corner tr"></div>
+            <div class="hud-corner bl"></div>
+            <div class="hud-corner br"></div>
         </div>
         
-        <div class="relative z-10 text-center px-6 max-w-5xl mx-auto">
-            <div class="font-mono text-xs md:text-sm tracking-[0.5em] mb-6 text-gray-400 animate-fade-in">
-                DIGITAL MEDIA ARTIST & PHOTOGRAPHER
+        <div class="glitch-blocks" id="glitchBlocks">
+            <div class="glitch-block"></div><div class="glitch-block"></div>
+            <div class="glitch-block"></div><div class="glitch-block"></div>
+            <div class="glitch-block"></div><div class="glitch-block"></div>
+            <div class="glitch-block"></div><div class="glitch-block"></div>
+        </div>
+        
+        <div class="cyber-scanline" id="cyberScanline"></div>
+        <div class="neon-pulse" id="neonPulse"></div>
+        
+        <div class="terminal-text" id="terminalText">
+            > DECRYPTING SYSTEM...<br>
+            > BYPASSING FIREWALL...<br>
+            > <span id="terminalCmd">ACCESSING NEURAL LINK</span><span class="cursor-blink">_</span>
+        </div>
+        
+        <div class="data-decode" id="dataDecode">01000001</div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor" id="cursor"></div>
+
+    <!-- Three.js Background -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="nav-fixed" id="mainNav">
+        <div class="text-2xl font-bold tracking-widest font-[Space Grotesk]">AKai.</div>
+        <div class="nav-links hidden md:flex">
+            <a href="#phase1" data-cursor="hover">Works</a>
+            <a href="#phase3" data-cursor="hover">Profile</a>
+            <a href="#phase5" data-cursor="hover">Contact</a>
+        </div>
+        <div class="text-xs uppercase tracking-widest opacity-70">Menu</div>
+    </nav>
+
+    <!-- Progress Dots -->
+    <div class="progress-dots" id="progressDots">
+        <div class="dot active" data-phase="1"></div>
+        <div class="dot" data-phase="2"></div>
+        <div class="dot" data-phase="3"></div>
+        <div class="dot" data-phase="4"></div>
+        <div class="dot" data-phase="5"></div>
+    </div>
+
+    <!-- Phase 01 -->
+    <section class="phase-section phase-1 revealed" id="phase1" data-color="#000510">
+        <div class="content" id="phase1Content">
+            <div class="phase-tag">Phase 01</div>
+            <h1 class="phase-title glitch" data-text="BUILDING SYNERGISTIC URBAN LANDSCAPES">BUILDING SYNERGISTIC<br>URBAN LANDSCAPES</h1>
+            <p class="phase-desc">Exploring the intersection of concrete and consciousness. A visual study of modern architecture through the lens of digital surrealism.</p>
+            <button class="cta-button" data-cursor="hover">
+                <span>Explore Works</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </button>
+        </div>
+        <div class="img-container active" id="img-1">
+            <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80" alt="Urban">
+            <div class="glitch-overlay"></div>
+        </div>
+        <div class="tvl-display" id="tvlDisplay">
+            <div class="tvl-amount">$2.4M</div>
+            <div class="tvl-label">Total Value Locked<br>in Visual Assets</div>
+        </div>
+        <div class="scroll-hint" id="scrollHint"><span>Scroll to Discover</span><div class="scroll-line"></div></div>
+    </section>
+
+    <!-- Phase 02 -->
+    <section class="phase-section phase-2" id="phase2" data-color="#0a0010">
+        <div class="content">
+            <div class="phase-tag" style="background: var(--neon-purple); color: #fff;">Phase 02</div>
+            <h1 class="phase-title glitch" data-text="LEND BORROW STAKE YOUR VISION">CAPTURE, CREATE,<br>OR STAKE YOUR VISION</h1>
+            <p class="phase-desc">Where organic forms meet digital precision. Nature reimagined through algorithmic beauty and neon dreams.</p>
+            <button class="cta-button" data-cursor="hover">
+                <span>View Collection</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </button>
+        </div>
+        <div class="img-container" id="img-2">
+            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200&q=80" alt="Nature">
+            <div class="glitch-overlay" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(184,41,221,0.1) 2px, rgba(184,41,221,0.1) 4px);"></div>
+        </div>
+        <div class="audio-hint">
+            <div class="audio-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
             </div>
-            <h1 class="font-display text-6xl md:text-9xl font-bold mb-6 tracking-tighter glitch" data-text="AKai.">
-                AKai.
-            </h1>
-            <p class="font-light text-lg md:text-2xl text-gray-300 max-w-2xl mx-auto leading-relaxed mb-12 animate-slide-up">
-                在光与影的交界处，<br>
-                捕捉城市与自然的诗意瞬间
-            </p>
-            <div class="flex justify-center space-x-4 animate-slide-up" style="animation-delay: 0.2s">
-                <a href="#portfolio" class="group relative px-8 py-3 border border-white/30 hover:border-white transition-all duration-300 overflow-hidden">
-                    <span class="relative z-10 font-mono text-sm tracking-widest">查看作品</span>
-                    <div class="absolute inset-0 bg-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-                    <span class="absolute inset-0 flex items-center justify-center text-black opacity-0 group-hover:opacity-100 transition-opacity duration-300 font-mono text-sm tracking-widest">查看作品</span>
-                </a>
-            </div>
-            
-            <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
-                <svg class="w-6 h-6 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-                </svg>
-            </div>
+            <span>Click & hold to listen</span>
         </div>
     </section>
 
-    <section id="portfolio" class="relative z-10 py-32 px-6 max-w-7xl mx-auto">
-        <div class="section mb-20">
-            <h2 class="font-display text-4xl md:text-6xl font-bold mb-4 tracking-tight">作品集</h2>
-            <div class="w-24 h-0.5 bg-white/30 mb-6"></div>
-            <p class="font-mono text-gray-400 text-sm tracking-widest">SELECTED WORKS 2023-2026</p>
+    <!-- Phase 03 -->
+    <section class="phase-section phase-3" id="phase3" data-color="#100005">
+        <div class="content">
+            <div class="phase-tag" style="background: #ff3366; color: #fff;">Phase 03</div>
+            <h1 class="phase-title glitch" data-text="INCENTIVIZING GROWTH WITH HUMAN CONNECTION">INCENTIVIZING GROWTH<br>WITH HUMAN CONNECTION</h1>
+            <p class="phase-desc">Portraits that speak in frequencies. Capturing the raw essence of human emotion through high-fidelity imagery.</p>
+            <button class="cta-button" data-cursor="hover">
+                <span>Meet the Subject</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </button>
         </div>
-
-        <div class="section mb-32">
-            <div class="flex flex-col md:flex-row items-end justify-between mb-12 border-b border-white/10 pb-6">
-                <div>
-                    <span class="font-mono text-xs text-gray-500 block mb-2">01 / URBAN ARCHITECTURE</span>
-                    <h3 class="font-display text-3xl md:text-5xl font-bold">城市建筑</h3>
-                </div>
-                <p class="text-gray-400 max-w-md mt-4 md:mt-0 text-sm leading-relaxed">
-                    探索现代都市的几何美学，在钢铁与玻璃的森林中寻找秩序与混乱的平衡点。每一栋建筑都是一首凝固的交响乐。
-                </p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                <div class="portfolio-item md:col-span-2 md:row-span-2 overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=80" 
-                         alt="Urban Architecture 1" class="w-full h-full object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&q=80" 
-                         alt="Urban Architecture 2" class="w-full h-64 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2?w=400&q=80" 
-                         alt="Urban Architecture 3" class="w-full h-64 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?w=400&q=80" 
-                         alt="Urban Architecture 4" class="w-full h-64 object-cover">
-                </div>
-                <div class="portfolio-item md:col-span-2 overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80" 
-                         alt="Urban Architecture 5" class="w-full h-64 object-cover">
-                </div>
-            </div>
-        </div>
-
-        <div class="section mb-32">
-            <div class="flex flex-col md:flex-row items-end justify-between mb-12 border-b border-white/10 pb-6">
-                <div>
-                    <span class="font-mono text-xs text-gray-500 block mb-2">02 / WILD HORIZONS</span>
-                    <h3 class="font-display text-3xl md:text-5xl font-bold">旷野遐想</h3>
-                </div>
-                <p class="text-gray-400 max-w-md mt-4 md:mt-0 text-sm leading-relaxed">
-                    远离城市的喧嚣，在广袤的自然中寻找内心的宁静。山川湖海，云雾缭绕，每一帧都是大自然的呼吸。
-                </p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80" 
-                         alt="Wild Landscape 1" class="w-full h-64 object-cover">
-                </div>
-                <div class="portfolio-item md:col-span-2 overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80" 
-                         alt="Wild Landscape 2" class="w-full h-64 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&q=80" 
-                         alt="Wild Landscape 3" class="w-full h-64 object-cover">
-                </div>
-                <div class="portfolio-item md:col-span-2 overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=800&q=80" 
-                         alt="Wild Landscape 4" class="w-full h-64 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=400&q=80" 
-                         alt="Wild Landscape 5" class="w-full h-64 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=400&q=80" 
-                         alt="Wild Landscape 6" class="w-full h-64 object-cover">
-                </div>
-            </div>
-        </div>
-
-        <div class="section mb-32">
-            <div class="flex flex-col md:flex-row items-end justify-between mb-12 border-b border-white/10 pb-6">
-                <div>
-                    <span class="font-mono text-xs text-gray-500 block mb-2">03 / LIGHT & SHADOW</span>
-                    <h3 class="font-display text-3xl md:text-5xl font-bold">建筑光影</h3>
-                </div>
-                <p class="text-gray-400 max-w-md mt-4 md:mt-0 text-sm leading-relaxed">
-                    光线是建筑的灵魂，阴影是光线的诗篇。在这个系列中，我试图捕捉光线穿透空间时产生的戏剧性瞬间。
-                </p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1493397212122-2b85dda8106b?w=400&q=80" 
-                         alt="Light Shadow 1" class="w-full h-80 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=400&q=80" 
-                         alt="Light Shadow 2" class="w-full h-80 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1486718448742-163732cd1544?w=400&q=80" 
-                         alt="Light Shadow 3" class="w-full h-80 object-cover">
-                </div>
-                <div class="portfolio-item md:col-span-2 overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1470723710355-95304d8aece4?w=800&q=80" 
-                         alt="Light Shadow 4" class="w-full h-64 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1504198458649-3128b932f49e?w=400&q=80" 
-                         alt="Light Shadow 5" class="w-full h-64 object-cover">
-                </div>
-            </div>
-        </div>
-
-        <div class="section mb-32">
-            <div class="flex flex-col md:flex-row items-end justify-between mb-12 border-b border-white/10 pb-6">
-                <div>
-                    <span class="font-mono text-xs text-gray-500 block mb-2">04 / LIFE FRAGMENTS</span>
-                    <h3 class="font-display text-3xl md:text-5xl font-bold">生活碎片</h3>
-                </div>
-                <p class="text-gray-400 max-w-md mt-4 md:mt-0 text-sm leading-relaxed">
-                    日常生活中的诗意瞬间，平凡场景中的不平凡视角。街头巷尾，人间烟火，每一个瞬间都值得被铭记。
-                </p>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1517732306149-e8f829eb588a?w=400&q=80" 
-                         alt="Life 1" class="w-full h-48 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=400&q=80" 
-                         alt="Life 2" class="w-full h-48 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&q=80" 
-                         alt="Life 3" class="w-full h-48 object-cover">
-                </div>
-                <div class="portfolio-item overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=400&q=80" 
-                         alt="Life 4" class="w-full h-48 object-cover">
-                </div>
-                <div class="portfolio-item col-span-2 overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=800&q=80" 
-                         alt="Life 5" class="w-full h-64 object-cover">
-                </div>
-                <div class="portfolio-item col-span-2 overflow-hidden rounded-sm">
-                    <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&q=80" 
-                         alt="Life 6" class="w-full h-64 object-cover">
-                </div>
-            </div>
+        <div class="img-container" id="img-3">
+            <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=1200&q=80" alt="Portrait">
+            <div class="glitch-overlay" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,51,102,0.1) 2px, rgba(255,51,102,0.1) 4px);"></div>
         </div>
     </section>
 
-    <section id="about" class="relative z-10 py-32 px-6 bg-black/50 backdrop-blur-sm">
-        <div class="max-w-6xl mx-auto">
-            <div class="section grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-                <div class="relative group">
-                    <div class="absolute -inset-4 bg-gradient-to-r from-white/20 to-gray-500/20 rounded-sm blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                    <div class="relative overflow-hidden rounded-sm">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80" 
-                             alt="AKai Portrait" 
-                             class="w-full h-[600px] object-cover grayscale hover:grayscale-0 transition-all duration-700">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                        <div class="absolute bottom-6 left-6 font-mono text-xs tracking-widest text-white/80">
-                            AKAI_CHEN<br>
-                            PHOTOGRAPHER
-                        </div>
-                    </div>
-                    <div class="absolute -bottom-6 -right-6 w-32 h-32 border border-white/20 rounded-sm"></div>
-                    <div class="absolute -top-6 -left-6 w-20 h-20 border border-white/10 rounded-full"></div>
-                </div>
-
-                <div class="space-y-8">
-                    <div>
-                        <span class="font-mono text-xs text-gray-500 tracking-widest block mb-4">ABOUT THE ARTIST</span>
-                        <h2 class="font-display text-4xl md:text-5xl font-bold mb-6">关于我</h2>
-                        <div class="w-16 h-0.5 bg-white/30"></div>
-                    </div>
-                    
-                    <div class="prose prose-invert prose-lg font-light text-gray-300 leading-relaxed space-y-6">
-                        <p>
-                            我是AKai，一名专注于数字媒体艺术与摄影的视觉创作者。在过去的十年里，我穿梭于城市的钢铁森林与自然的广袤天地之间，试图用镜头捕捉那些转瞬即逝的光影瞬间。
-                        </p>
-                        <p>
-                            我的摄影哲学源于对"对比"的痴迷——光与暗、刚与柔、人工与自然。我相信每一张照片都是时间的切片，是摄影师内心世界的投射。我不追求完美的构图或技术指标，而是致力于捕捉那些能够触动人心的真实瞬间。
-                        </p>
-                        <p>
-                            从东京的霓虹街头到冰岛的荒野之境，从现代建筑的极简线条到街头巷尾的生活百态，我的镜头记录着这个世界的多样面貌。作品曾展出于多个国际摄影节，并被多家设计杂志收录。
-                        </p>
-                    </div>
-
-                    <div class="pt-6 border-t border-white/10">
-                        <div class="grid grid-cols-3 gap-8 text-center">
-                            <div>
-                                <div class="font-display text-3xl font-bold mb-1">10+</div>
-                                <div class="font-mono text-xs text-gray-500 tracking-widest">YEARS EXP</div>
-                            </div>
-                            <div>
-                                <div class="font-display text-3xl font-bold mb-1">50+</div>
-                                <div class="font-mono text-xs text-gray-500 tracking-widest">PROJECTS</div>
-                            </div>
-                            <div>
-                                <div class="font-display text-3xl font-bold mb-1">12</div>
-                                <div class="font-mono text-xs text-gray-500 tracking-widest">AWARDS</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <!-- Phase 04 -->
+    <section class="phase-section phase-4" id="phase4" data-color="#000000">
+        <div class="content">
+            <div class="phase-tag">Phase 04</div>
+            <h1 class="phase-title glitch" data-text="FORGING AN UNBIASED ABSTRACT REALITY">FORGING AN UNBIASED<br>ABSTRACT REALITY</h1>
+            <p class="phase-desc">Decentralized visual language. Where light, shadow, and glitch converge to form new meanings.</p>
+            <button class="cta-button" data-cursor="hover">
+                <span>Enter Void</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+            </button>
+        </div>
+        <div class="img-container" id="img-4">
+            <img src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=1200&q=80" alt="Abstract">
+            <div class="glitch-overlay" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(204,255,0,0.1) 2px, rgba(204,255,0,0.1) 4px);"></div>
         </div>
     </section>
 
-    <section id="contact" class="relative z-10 py-32 px-6 max-w-4xl mx-auto">
-        <div class="section text-center mb-16">
-            <span class="font-mono text-xs text-gray-500 tracking-widest block mb-4">GET IN TOUCH</span>
-            <h2 class="font-display text-4xl md:text-6xl font-bold mb-6">联系方式</h2>
-            <p class="text-gray-400 max-w-xl mx-auto">
-                有合作意向或想要购买作品版权？<br>
-                欢迎随时与我联系，期待与您的交流。
-            </p>
-        </div>
-
-        <div class="section grid grid-cols-1 md:grid-cols-2 gap-12">
-            <form class="space-y-6" onsubmit="event.preventDefault(); alert('消息已发送！');">
-                <div>
-                    <label class="block font-mono text-xs tracking-widest text-gray-500 mb-2">NAME</label>
-                    <input type="text" required class="w-full px-4 py-3 text-white placeholder-gray-600" placeholder="您的姓名">
-                </div>
-                <div>
-                    <label class="block font-mono text-xs tracking-widest text-gray-500 mb-2">EMAIL</label>
-                    <input type="email" required class="w-full px-4 py-3 text-white placeholder-gray-600" placeholder="您的邮箱">
-                </div>
-                <div>
-                    <label class="block font-mono text-xs tracking-widest text-gray-500 mb-2">MESSAGE</label>
-                    <textarea rows="5" required class="w-full px-4 py-3 text-white placeholder-gray-600 resize-none" placeholder="请输入您的留言..."></textarea>
-                </div>
-                <button type="submit" class="w-full py-4 bg-white text-black font-mono text-sm tracking-widest hover:bg-gray-200 transition-colors duration-300">
-                    发送消息
-                </button>
+    <!-- Phase 05 -->
+    <section class="phase-section phase-5" id="phase5" data-color="#050505">
+        <div class="content">
+            <div class="phase-tag" style="background: #fff; color: #000;">Phase 05</div>
+            <h1 class="phase-title" style="font-size: clamp(1.5rem, 4vw, 3rem);">EXPANDING<br>WITHOUT BORDERS</h1>
+            <p class="phase-desc">Ready to collaborate? Let's create something that defies conventional visual language.</p>
+            <form class="max-w-md space-y-6 mt-8" onsubmit="event.preventDefault();">
+                <div class="relative"><input type="text" placeholder="Your Name" class="w-full bg-transparent border-b border-white/20 py-4 focus:border-white outline-none transition-colors text-sm" data-cursor="hover"></div>
+                <div class="relative"><input type="email" placeholder="Your Email" class="w-full bg-transparent border-b border-white/20 py-4 focus:border-white outline-none transition-colors text-sm" data-cursor="hover"></div>
+                <button type="submit" class="cta-button mt-4" data-cursor="hover"><span>Initialize Contact</span></button>
             </form>
-
-            <div class="space-y-8 md:pl-12">
-                <div>
-                    <h3 class="font-display text-xl font-bold mb-4">社交媒体</h3>
-                    <div class="space-y-4">
-                        <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white transition-colors group">
-                            <div class="w-10 h-10 border border-white/20 flex items-center justify-center group-hover:border-white transition-colors">
-                                <span class="font-mono text-xs">WX</span>
-                            </div>
-                            <span class="font-mono text-sm">WeChat: AKai_Photo</span>
-                        </a>
-                        <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white transition-colors group">
-                            <div class="w-10 h-10 border border-white/20 flex items-center justify-center group-hover:border-white transition-colors">
-                                <span class="font-mono text-xs">QQ</span>
-                            </div>
-                            <span class="font-mono text-sm">QQ: 123456789</span>
-                        </a>
-                        <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white transition-colors group">
-                            <div class="w-10 h-10 border border-white/20 flex items-center justify-center group-hover:border-white transition-colors">
-                                <span class="font-mono text-xs">IG</span>
-                            </div>
-                            <span class="font-mono text-sm">Instagram: @akai.lens</span>
-                        </a>
-                        <a href="#" class="flex items-center space-x-3 text-gray-400 hover:text-white transition-colors group">
-                            <div class="w-10 h-10 border border-white/20 flex items-center justify-center group-hover:border-white transition-colors">
-                                <span class="font-mono text-xs">BE</span>
-                            </div>
-                            <span class="font-mono text-sm">Behance: /akai_portfolio</span>
-                        </a>
-                    </div>
-                </div>
-
-                <div class="pt-8 border-t border-white/10">
-                    <h3 class="font-display text-xl font-bold mb-4">工作室</h3>
-                    <p class="text-gray-400 text-sm leading-relaxed font-mono">
-                        上海市徐汇区<br>
-                        武康路 376 号<br>
-                        创意园区 B座 302室<br><br>
-                        预约制参观，请提前联系
-                    </p>
-                </div>
-
-                <div class="font-mono text-xs text-gray-600 pt-4">
-                    <p>当前时间: <span id="current-time"></span></p>
-                    <p>坐标: 31.2304° N, 121.4737° E</p>
-                </div>
-            </div>
         </div>
+        <div class="side-info"><div class="mb-2">AKai Visual Labs © 2026</div><div class="opacity-50">31.2304° N, 121.4737° E</div></div>
     </section>
-
-    <footer class="relative z-10 py-12 px-6 border-t border-white/10 bg-black">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-            <div class="font-display text-2xl font-bold mb-4 md:mb-0">AKai.</div>
-            <div class="font-mono text-xs text-gray-600 tracking-widest">
-                &copy; 2026 AKAI PHOTOGRAPHY. ALL RIGHTS RESERVED.
-            </div>
-            <div class="flex space-x-6 mt-4 md:mt-0">
-                <a href="#" class="text-gray-600 hover:text-white transition-colors text-xs font-mono">PRIVACY</a>
-                <a href="#" class="text-gray-600 hover:text-white transition-colors text-xs font-mono">TERMS</a>
-            </div>
-        </div>
-    </footer>
 
     <script>
-        const canvas = document.getElementById('particle-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        let animationId;
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 0.5;
-                this.speedX = Math.random() * 0.5 - 0.25;
-                this.speedY = Math.random() * 0.5 - 0.25;
-                this.opacity = Math.random() * 0.5 + 0.1;
+        // TextScramble 类 - 保持不变
+        class TextScramble {
+            constructor(el) { this.el = el; this.chars = '!<>-_\\/[]{}—=+*^?#________'; this.update = this.update.bind(this); }
+            setText(newText) {
+                const oldText = this.el.innerText, length = Math.max(oldText.length, newText.length);
+                const promise = new Promise((resolve) => this.resolve = resolve);
+                this.queue = [];
+                for (let i = 0; i < length; i++) {
+                    const from = oldText[i] || '', to = newText[i] || '';
+                    const start = Math.floor(Math.random() * 20), end = start + Math.floor(Math.random() * 20);
+                    this.queue.push({ from, to, start, end });
+                }
+                cancelAnimationFrame(this.frameRequest); this.frame = 0; this.update();
+                return promise;
             }
-
             update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-
-                if (this.x > canvas.width) this.x = 0;
-                if (this.x < 0) this.x = canvas.width;
-                if (this.y > canvas.height) this.y = 0;
-                if (this.y < 0) this.y = canvas.height;
+                let output = '', complete = 0;
+                for (let i = 0, n = this.queue.length; i < n; i++) {
+                    let { from, to, start, end, char } = this.queue[i];
+                    if (this.frame >= end) { complete++; output += to; }
+                    else if (this.frame >= start) {
+                        if (!char || Math.random() < 0.28) { char = this.randomChar(); this.queue[i].char = char; }
+                        output += `<span style="color: var(--neon-blue); opacity: 0.8;">${char}</span>`;
+                    } else output += from;
+                }
+                this.el.innerHTML = output;
+                if (complete === this.queue.length) this.resolve();
+                else { this.frameRequest = requestAnimationFrame(this.update); this.frame++; }
             }
-
-            draw() {
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
+            randomChar() { return this.chars[Math.floor(Math.random() * this.chars.length)]; }
         }
 
-        function initParticles() {
-            particles = [];
-            const particleCount = Math.min(window.innerWidth / 10, 100);
-            for (let i = 0; i < particleCount; i++) {
-                particles.push(new Particle());
+        // ===== 赛博朋克过渡特效 =====
+        function initCyberTransition() {
+            // 创建数字雨列
+            const rainContainer = document.getElementById('digitalRain');
+            for(let i = 0; i < 20; i++) {
+                const col = document.createElement('div');
+                col.className = 'rain-column';
+                col.style.left = `${i * 5}%`;
+                col.style.height = `${Math.random() * 300 + 100}px`;
+                col.style.animationDuration = `${Math.random() * 2 + 1}s`;
+                col.style.animationDelay = `${Math.random() * 2}s`;
+                col.style.animation = `rainFall ${Math.random() * 3 + 2}s linear infinite`;
+                rainContainer.appendChild(col);
             }
-        }
-
-        function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            particles.forEach(particle => {
-                particle.update();
-                particle.draw();
-            });
+            // 添加数字雨动画
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes rainFall {
+                    0% { transform: translateY(-100%); opacity: 0; }
+                    10% { opacity: 1; }
+                    90% { opacity: 1; }
+                    100% { transform: translateY(100vh); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
 
-            particles.forEach((a, index) => {
-                particles.slice(index + 1).forEach(b => {
-                    const distance = Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-                    if (distance < 100) {
-                        ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * (1 - distance / 100)})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.beginPath();
-                        ctx.moveTo(a.x, a.y);
-                        ctx.lineTo(b.x, b.y);
-                        ctx.stroke();
+        function playCyberTransition() {
+            const tl = gsap.timeline();
+            const transition = document.getElementById('cyberTransition');
+            const rain = document.getElementById('digitalRain');
+            const grid = document.getElementById('cyberGrid');
+            const hudFrame = document.getElementById('hudFrame');
+            const corners = document.querySelectorAll('.hud-corner');
+            const blocks = document.querySelectorAll('.glitch-block');
+            const scanline = document.getElementById('cyberScanline');
+            const terminal = document.getElementById('terminalText');
+            const neonPulse = document.getElementById('neonPulse');
+            const dataDecode = document.getElementById('dataDecode');
+            const loader = document.getElementById('loader');
+            
+            // 终端文字打字效果
+            const terminalLines = [
+                "DECRYPTING SYSTEM...",
+                "BYPASSING FIREWALL...",
+                "ACCESSING NEURAL LINK...",
+                "UPLOAD CONSCIOUSNESS...",
+                "SYSTEM READY"
+            ];
+            let currentLine = 0;
+            const cmdSpan = document.getElementById('terminalCmd');
+            
+            function typeNextLine() {
+                if(currentLine < terminalLines.length) {
+                    cmdSpan.textContent = terminalLines[currentLine];
+                    currentLine++;
+                    if(currentLine < terminalLines.length) {
+                        setTimeout(typeNextLine, 400);
                     }
-                });
-            });
-
-            animationId = requestAnimationFrame(animateParticles);
-        }
-
-        resizeCanvas();
-        initParticles();
-        animateParticles();
-
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-            initParticles();
-        });
-
-        const cursor = document.getElementById('cursor');
-        document.addEventListener('mousemove', (e) => {
-            cursor.style.left = e.clientX - 10 + 'px';
-            cursor.style.top = e.clientY - 10 + 'px';
-        });
-
-        document.addEventListener('mousedown', () => {
-            cursor.style.transform = 'scale(0.8)';
-        });
-
-        document.addEventListener('mouseup', () => {
-            cursor.style.transform = 'scale(1)';
-        });
-
-        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-        const mobileMenu = document.getElementById('mobile-menu');
-
-        mobileMenuBtn.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-        });
-
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                    mobileMenu.classList.add('hidden');
                 }
-            });
-        });
-
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.section').forEach(section => {
-            observer.observe(section);
-        });
-
-        function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleString('zh-CN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: false
-            });
-            document.getElementById('current-time').textContent = timeString;
-        }
-        setInterval(updateTime, 1000);
-        updateTime();
-
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
-            const heroImage = document.querySelector('#home img');
-            if (heroImage) {
-                heroImage.style.transform = `translateY(${scrolled * 0.5}px)`;
             }
+
+            tl.set(transition, { opacity: 1 })
+            // 阶段1：数字雨落下 + 网格浮现
+            .to(rain, { opacity: 1, duration: 0.3 })
+            .to(grid, { 
+                opacity: 0.6, 
+                rotateX: 0, 
+                y: 0,
+                duration: 1, 
+                ease: "power3.out" 
+            }, "-=0.2")
+            
+            // 阶段2：HUD框展开
+            .to(hudFrame, { opacity: 1, duration: 0.3 }, "-=0.5")
+            .to(corners, { 
+                opacity: 1, 
+                scale: 1, 
+                duration: 0.4, 
+                stagger: 0.1, 
+                ease: "back.out(1.7)" 
+            }, "-=0.2")
+            
+            // 阶段3：故障块疯狂闪烁（模拟系统入侵）
+            .to(blocks, {
+                x: "0%",
+                opacity: 0.8,
+                duration: 0.2,
+                stagger: {
+                    each: 0.05,
+                    from: "random"
+                },
+                ease: "power4.in"
+            })
+            .to(blocks, {
+                x: (i) => i % 2 === 0 ? "10%" : "-10%",
+                duration: 0.1,
+                yoyo: true,
+                repeat: 3,
+                ease: "steps(2)"
+            })
+            
+            // 阶段4：水平扫描线划过
+            .to(scanline, { opacity: 1, top: "100%", duration: 0.6, ease: "power2.inOut" })
+            
+            // 阶段5：终端文字解码
+            .add(() => { terminal.style.opacity = 1; typeNextLine(); })
+            .to({}, { duration: 1.5 }) // 等待打字完成
+            
+            // 阶段6：二进制数据闪现
+            .to(dataDecode, { opacity: 0.3, scale: 1.2, duration: 0.2 })
+            .to(dataDecode, { 
+                opacity: 0,
+                scale: 2,
+                duration: 0.4,
+                ease: "power2.in"
+            })
+            
+            // 阶段7：霓虹脉冲边框（系统启动）
+            .add(() => { neonPulse.classList.add('active'); })
+            .to(neonPulse, { opacity: 1, duration: 0.2 })
+            .to(neonPulse, {
+                boxShadow: "inset 0 0 100px rgba(0,217,255,0.5), 0 0 100px rgba(0,217,255,0.5)",
+                duration: 0.5,
+                yoyo: true,
+                repeat: 1
+            })
+            
+            // 阶段8：隐藏loader，揭示主站
+            .add(() => {
+                loader.style.display = 'none';
+                document.getElementById('bg-canvas').classList.add('revealed');
+                document.getElementById('mainNav').classList.add('revealed');
+                document.getElementById('progressDots').classList.add('revealed');
+                document.getElementById('phase1').classList.add('revealed');
+                document.getElementById('phase1Content').classList.add('revealed');
+                document.querySelector('#phase1 .phase-tag').classList.add('revealed');
+                document.getElementById('tvlDisplay').classList.add('revealed');
+                document.getElementById('scrollHint').classList.add('revealed');
+            })
+            
+            // 阶段9：故障块向两侧飞散
+            .to(blocks, {
+                x: (i) => i % 2 === 0 ? "100%" : "-100%",
+                opacity: 0,
+                duration: 0.5,
+                stagger: 0.05,
+                ease: "expo.in"
+            })
+            
+            // 阶段10：HUD框收缩消失
+            .to(corners, { opacity: 0, scale: 0, duration: 0.3 }, "-=0.4")
+            .to(hudFrame, { opacity: 0, scale: 1.1, duration: 0.3 }, "-=0.2")
+            
+            // 阶段11：网格下沉 + 数字雨加速
+            .to(grid, { 
+                rotateX: 90, 
+                y: 200, 
+                opacity: 0,
+                duration: 0.8, 
+                ease: "power2.in" 
+            }, "-=0.3")
+            .to(rain, { opacity: 0, duration: 0.3 }, "-=0.5")
+            
+            // 阶段12：终端文字向上滚动消失
+            .to(terminal, { y: -50, opacity: 0, duration: 0.3 }, "-=0.3")
+            
+            // 阶段13：霓虹边框最后脉冲后消失
+            .to(neonPulse, { 
+                opacity: 0, 
+                scale: 1.1,
+                duration: 0.5,
+                onComplete: () => {
+                    transition.style.display = 'none';
+                    // 重置所有元素
+                    gsap.set(blocks, { x: "-100%", opacity: 0 });
+                    gsap.set(corners, { opacity: 0, scale: 0 });
+                    gsap.set([rain, grid, hudFrame, scanline, terminal, neonPulse], { opacity: 0 });
+                    neonPulse.classList.remove('active');
+                    currentLine = 0;
+                }
+            });
+        }
+
+        // 初始化 Loading 动画（保持不变）
+        function initLoaderAnimation() {
+            const targetText = "AKAI", container = document.getElementById('scrambleContainer');
+            const tl = gsap.timeline();
+            targetText.split('').forEach((char) => {
+                const span = document.createElement('span');
+                span.className = 'scramble-char'; span.textContent = char;
+                container.appendChild(span);
+            });
+            const chars = document.querySelectorAll('.scramble-char');
+            const scrambleInstances = [];
+            chars.forEach((char) => { const fx = new TextScramble(char); scrambleInstances.push(fx); });
+            
+            tl.to(chars, {
+                y: "0%", skewY: 0, opacity: 1, filter: "blur(0px)",
+                duration: 1.2, stagger: 0.1, ease: "expo.out",
+                onStart: () => {
+                    chars.forEach((char, i) => {
+                        setTimeout(() => { scrambleInstances[i].setText(char.textContent); }, i * 100);
+                    });
+                }
+            })
+            .to('#scanBar', { opacity: 1, top: "100%", duration: 0.6, ease: "power2.inOut" }, "-=0.8")
+            .to('#rgbLayer', { opacity: 1, duration: 0.1, ease: "steps(1)" })
+            .to('.rgb-channel', { x: (i) => (i - 1) * 8, opacity: 0.3, duration: 0.2, stagger: 0.02, ease: "power4.out" })
+            .to('#rgbLayer', { opacity: 0, duration: 0.3 })
+            .to(container, { opacity: 0, scale: 1.1, filter: "blur(20px)", duration: 0.4, ease: "power2.in" })
+            .to('#glitchWrapper', { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.7)" }, "-=0.2")
+            .to('#accentLine', { width: "200px", duration: 0.8, ease: "power3.inOut" }, "-=0.4")
+            .to('#statusTag', { opacity: 1, clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 100%)", duration: 0.6, ease: "power4.out" }, "-=0.6")
+            .add(() => {
+                const tag = document.getElementById('statusTag'), states = ['Loading Assets', 'Decrypting', 'Rendering'];
+                let i = 0;
+                const interval = setInterval(() => {
+                    if (i >= states.length) { clearInterval(interval); tag.textContent = "SYSTEM READY"; return; }
+                    tag.textContent = states[i]; i++;
+                }, 200);
+            }, "-=0.3")
+            .to({}, { duration: 1.5 })
+            .add(() => { playCyberTransition(); });
+        }
+
+        gsap.registerPlugin(ScrollTrigger);
+        window.addEventListener('load', () => { initCyberTransition(); initLoaderAnimation(); });
+        document.getElementById('loader').addEventListener('click', () => { gsap.globalTimeline.timeScale(3); });
+
+        // Custom Cursor
+        const cursor = document.getElementById('cursor');
+        const hoverElements = document.querySelectorAll('[data-cursor="hover"]');
+        document.addEventListener('mousemove', (e) => { cursor.style.left = e.clientX - 10 + 'px'; cursor.style.top = e.clientY - 10 + 'px'; });
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
         });
+
+        // Three.js Background
+        const canvas = document.getElementById('bg-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+        const geometry = new THREE.IcosahedronGeometry(10, 4);
+        const material = new THREE.MeshBasicMaterial({ color: 0x00d9ff, wireframe: true, transparent: true, opacity: 0.3 });
+        const sphere = new THREE.Mesh(geometry, material);
+        scene.add(sphere);
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 700;
+        const posArray = new Float32Array(particlesCount * 3);
+        for(let i = 0; i < particlesCount * 3; i++) posArray[i] = (Math.random() - 0.5) * 100;
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({ size: 0.1, color: 0xffffff, transparent: true, opacity: 0.5 });
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+        let mouseX = 0, mouseY = 0;
+        document.addEventListener('mousemove', (e) => { mouseX = (e.clientX / window.innerWidth) * 2 - 1; mouseY = (e.clientY / window.innerHeight) * 2 - 1; });
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate); time += 0.01;
+            sphere.rotation.x += 0.001; sphere.rotation.y += 0.002;
+            const positions = geometry.attributes.position;
+            for (let i = 0; i < positions.count; i++) {
+                const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
+                const noise = Math.sin(x * 0.5 + time) * Math.cos(y * 0.5 + time) * 2;
+                positions.setZ(i, z + noise * 0.1);
+            }
+            positions.needsUpdate = true;
+            particlesMesh.rotation.y = mouseX * 0.5; particlesMesh.rotation.x = mouseY * 0.5;
+            renderer.render(scene, camera);
+        }
+        animate();
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+
+        // Scroll Triggers
+        const sections = document.querySelectorAll('.phase-section');
+        const dots = document.querySelectorAll('.dot');
+        const imgs = document.querySelectorAll('.img-container');
+        
+        sections.forEach((section, index) => {
+            if (index === 0) return;
+            ScrollTrigger.create({
+                trigger: section, start: "top 80%", end: "bottom 20%",
+                onEnter: () => { section.classList.add('revealed'); section.querySelector('.content')?.classList.add('revealed'); section.querySelector('.phase-tag')?.classList.add('revealed'); },
+                onEnterBack: () => { section.classList.add('revealed'); }
+            });
+        });
+        sections.forEach((section, index) => {
+            ScrollTrigger.create({
+                trigger: section, start: "top center", end: "bottom center",
+                onEnter: () => updatePhase(index + 1), onEnterBack: () => updatePhase(index + 1)
+            });
+        });
+        function updatePhase(phaseNum) {
+            dots.forEach((dot, idx) => dot.classList.toggle('active', idx + 1 === phaseNum));
+            imgs.forEach((img, idx) => img.classList.toggle('active', idx + 1 === phaseNum));
+            const colors = [0x00d9ff, 0xb829dd, 0xff3366, 0xccff00, 0xffffff];
+            gsap.to(material.color, { r: new THREE.Color(colors[phaseNum - 1]).r, g: new THREE.Color(colors[phaseNum - 1]).g, b: new THREE.Color(colors[phaseNum - 1]).b, duration: 1 });
+        }
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault(); const target = document.querySelector(this.getAttribute('href'));
+                if (target) gsap.to(window, { duration: 1.5, scrollTo: { y: target, offsetY: 0 }, ease: "power3.inOut" });
+            });
+        });
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => { gsap.to(window, { duration: 1.5, scrollTo: { y: sections[index], offsetY: 0 }, ease: "power3.inOut" }); });
+        });
+
+        // Text scramble on hover
+        class TextScrambleHover {
+            constructor(el) { this.el = el; this.chars = '!<>-_\\/[]{}—=+*^?#________'; this.update = this.update.bind(this); }
+            setText(newText) {
+                const oldText = this.el.innerText, length = Math.max(oldText.length, newText.length);
+                const promise = new Promise((resolve) => this.resolve = resolve);
+                this.queue = [];
+                for (let i = 0; i < length; i++) {
+                    const from = oldText[i] || '', to = newText[i] || '';
+                    const start = Math.floor(Math.random() * 40), end = start + Math.floor(Math.random() * 40);
+                    this.queue.push({ from, to, start, end });
+                }
+                cancelAnimationFrame(this.frameRequest); this.frame = 0; this.update();
+                return promise;
+            }
+            update() {
+                let output = '', complete = 0;
+                for (let i = 0, n = this.queue.length; i < n; i++) {
+                    let { from, to, start, end, char } = this.queue[i];
+                    if (this.frame >= end) { complete++; output += to; }
+                    else if (this.frame >= start) {
+                        if (!char || Math.random() < 0.28) { char = this.randomChar(); this.queue[i].char = char; }
+                        output += `<span class="text-[var(--accent)]">${char}</span>`;
+                    } else output += from;
+                }
+                this.el.innerHTML = output;
+                if (complete === this.queue.length) this.resolve();
+                else { this.frameRequest = requestAnimationFrame(this.update); this.frame++; }
+            }
+            randomChar() { return this.chars[Math.floor(Math.random() * this.chars.length)]; }
+        }
+        document.querySelectorAll('.phase-title').forEach(title => {
+            const fx = new TextScrambleHover(title), originalText = title.getAttribute('data-text') || title.innerText;
+            title.addEventListener('mouseenter', () => { fx.setText(originalText); });
+        });
+
+        const audioHint = document.querySelector('.audio-hint');
+        if (audioHint) {
+            let isPlaying = false;
+            audioHint.addEventListener('mousedown', () => { isPlaying = true; audioHint.style.opacity = '1'; gsap.to(sphere.rotation, { y: sphere.rotation.y + 10, duration: 2, ease: "power2.out" }); });
+            audioHint.addEventListener('mouseup', () => { isPlaying = false; audioHint.style.opacity = '0.4'; });
+        }
     </script>
 </body>
 </html>
