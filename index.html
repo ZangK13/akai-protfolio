@@ -27,22 +27,12 @@
             background: var(--deep-black);
             color: #ffffff;
             overflow-x: hidden;
-            cursor: none;
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='white' stroke='rgba(0,0,0,0.3)' stroke-width='1'%3E%3Cpath d='M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86a.5.5 0 0 1 .35-.15h6.87a.5.5 0 0 0 .35-.85L6.35 2.85a.5.5 0 0 0-.85.35Z'/%3E%3C/svg%3E") 0 0, auto;
         }
 
         @media (hover: none) {
             body { cursor: auto; }
         }
-
-        .cursor {
-            width: 20px; height: 20px;
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 50%;
-            position: fixed; pointer-events: none;
-            z-index: 9999; mix-blend-mode: difference;
-            transition: transform 0.2s, width 0.2s, height 0.2s;
-        }
-        .cursor.hover { width: 50px; height: 50px; background: rgba(255,255,255,0.1); border-color: var(--neon-blue); }
 
         /* Loading Screen */
         .loader {
@@ -337,10 +327,7 @@
         .cta-button:active { transform: scale(0.98); }
 
         .side-info { position: absolute; right: 3rem; bottom: 3rem; text-align: right; font-size: 0.75rem; opacity: 0.5; font-family: 'Space Grotesk', sans-serif; }
-        .tvl-display { position: absolute; right: 3rem; top: 50%; transform: translateY(-50%); text-align: right; font-family: 'Space Grotesk', sans-serif; opacity: 0; }
-        .tvl-display.revealed { opacity: 1; transition: opacity 1s ease 1s; }
-        .tvl-amount { font-size: 1.2rem; font-weight: 700; color: #fff; }
-        .tvl-label { font-size: 0.7rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.1em; }
+       
 
         .progress-dots { position: fixed; top: 50%; right: 3rem; transform: translateY(-50%); display: flex; flex-direction: column; gap: 1rem; z-index: 100; opacity: 0; }
         .progress-dots.revealed { opacity: 1; transition: opacity 1s ease 1.2s; }
@@ -571,9 +558,6 @@
         <div class="data-decode" id="dataDecode">01000001</div>
     </div>
 
-    <!-- Custom Cursor (桌面端显示) -->
-    <div class="cursor" id="cursor"></div>
-
     <!-- Three.js Background -->
     <canvas id="bg-canvas"></canvas>
 
@@ -611,10 +595,6 @@
         <div class="img-container active" id="img-1">
             <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80" alt="Urban">
             <div class="glitch-overlay"></div>
-        </div>
-        <div class="tvl-display" id="tvlDisplay">
-            <div class="tvl-amount">$2.4M</div>
-            <div class="tvl-label">Total Value Locked<br>in Visual Assets</div>
         </div>
         <div class="scroll-hint" id="scrollHint"><span>Scroll to Discover</span><div class="scroll-line"></div></div>
     </section>
@@ -802,7 +782,6 @@
                 document.getElementById('phase1').classList.add('revealed');
                 document.getElementById('phase1Content').classList.add('revealed');
                 document.querySelector('#phase1 .phase-tag').classList.add('revealed');
-                document.getElementById('tvlDisplay').classList.add('revealed');
                 document.getElementById('scrollHint').classList.add('revealed');
             })
             .to(blocks, { x: (i) => i % 2 === 0 ? "100%" : "-100%", opacity: 0, duration: 0.5, stagger: 0.05, ease: "expo.in" })
@@ -1105,22 +1084,6 @@
         });
         document.getElementById('loader').addEventListener('click', () => { gsap.globalTimeline.timeScale(3); });
 
-        // Custom Cursor (仅桌面端)
-        if (!isTouchDevice) {
-            const cursor = document.getElementById('cursor');
-            const hoverElements = document.querySelectorAll('[data-cursor="hover"]');
-            document.addEventListener('mousemove', (e) => { 
-                cursor.style.left = e.clientX - 10 + 'px'; 
-                cursor.style.top = e.clientY - 10 + 'px'; 
-            });
-            hoverElements.forEach(el => {
-                el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
-                el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
-            });
-        } else {
-            document.getElementById('cursor').style.display = 'none';
-        }
-
         // Three.js Background - 恢复原始线框球体效果
         const canvas = document.getElementById('bg-canvas');
         const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
@@ -1218,13 +1181,15 @@
             });
         });
         
-        sections.forEach((section, index) => {
-            ScrollTrigger.create({
-                trigger: section, start: "top center", end: "bottom center",
-                onEnter: () => updatePhase(index + 1), 
-                onEnterBack: () => updatePhase(index + 1)
-            });
-        });
+sections.forEach((section, index) => {
+    ScrollTrigger.create({
+        trigger: section, 
+        start: "top 80%",  // 与 revealed 类同步
+        end: "bottom 20%",
+        onEnter: () => updatePhase(index + 1), 
+        onEnterBack: () => updatePhase(index + 1)
+    });
+});
         
         function updatePhase(phaseNum) {
             dots.forEach((dot, idx) => dot.classList.toggle('active', idx + 1 === phaseNum));
