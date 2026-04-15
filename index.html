@@ -176,6 +176,85 @@
             border-color: var(--neon-blue);
             box-shadow: inset 0 0 50px rgba(0,217,255,0.2), 0 0 50px rgba(0,217,255,0.2);
         }
+        
+        /* 赛博朋克打字机效果 */
+        .typewriter-container { position: relative; display: inline-block; }
+        .typewriter-text { visibility: visible; }
+        .typewriter-cursor {
+            position: absolute; right: -4px; top: 0; width: 3px; height: 100%;
+            background: var(--neon-blue); 
+            box-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
+            animation: cursor-blink 0.08s steps(2) infinite; 
+            opacity: 0; pointer-events: none;
+        }
+        .typewriter-cursor.typing { opacity: 1; }
+        @keyframes cursor-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* 字体故障类 - 用于随机字体切换 */
+        .font-glitch-1 { font-family: 'Courier New', 'SimSun', monospace !important; }
+        .font-glitch-2 { font-family: 'Arial', 'Microsoft YaHei', sans-serif !important; }
+        .font-glitch-3 { font-family: 'Georgia', 'SimKai', serif !important; }
+        .font-glitch-4 { font-family: 'Verdana', 'SimHei', sans-serif !important; }
+        .font-glitch-5 { font-family: 'Times New Roman', 'FangSong', serif !important; }
+        
+        /* 退格删除线效果 */
+        .backspace-char {
+            color: #ff3366;
+            text-decoration: line-through;
+            text-decoration-color: var(--neon-purple);
+            opacity: 0.6;
+        }
+        
+        /* 打字中的闪烁光标 */
+        .typing-char {
+            color: var(--neon-blue);
+            border-bottom: 1px solid var(--neon-blue);
+            animation: typing-flicker 0.1s infinite;
+        }
+        @keyframes typing-flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* 字体故障类 */
+        .font-glitch-1 { font-family: 'Courier New', 'SimSun', monospace !important; }
+        .font-glitch-2 { font-family: 'Arial', 'Microsoft YaHei', sans-serif !important; }
+        .font-glitch-3 { font-family: 'Georgia', 'SimKai', serif !important; }
+        .font-glitch-4 { font-family: 'Verdana', 'SimHei', sans-serif !important; }
+        .font-glitch-5 { font-family: 'Times New Roman', 'FangSong', serif !important; }
+        
+        /* 退格删除线效果 */
+        .backspace-char {
+            position: relative;
+            color: #ff3366;
+            text-decoration: line-through;
+            text-decoration-color: var(--neon-purple);
+            opacity: 0.6;
+        }
+        
+        /* 拼音输入中的样式 */
+        .pinyin-typing {
+            color: var(--neon-blue);
+            opacity: 0.8;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-bottom: 1px dashed var(--neon-blue);
+            animation: pinyin-flicker 0.1s infinite;
+        }
+        
+        @keyframes pinyin-flicker {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* 字符故障动画 */
+        .char-glitch {
+            animation: char-switch 0.1s steps(2) infinite;
+        }
+        @keyframes char-switch {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; transform: skewX(-5deg); }
+        }
 
         /* 其他原有样式 */
         .glitch { position: relative; display: inline-block; }
@@ -784,8 +863,246 @@
             .add(() => { playCyberTransition(); });
         }
 
+                // ========== 赛博朋克打字机与故障效果系统 ==========
+        
+        class CyberTypewriter {
+            constructor(element, options = {}) {
+                this.element = element;
+                this.text = element.getAttribute('data-text') || element.innerText;
+                this.speed = options.speed || 40;
+                this.hasTyped = false;
+                this.fontClasses = ['font-glitch-1', 'font-glitch-2', 'font-glitch-3', 'font-glitch-4', 'font-glitch-5'];
+                this.glitchChars = '▓▒░█▄▀■□▪▫◊•★☆✦⚡❖◎◉';
+                this.init();
+            }
+            
+            init() {
+                this.element.setAttribute('data-text', this.text);
+                this.element.innerHTML = '<span class="typewriter-text"></span><span class="typewriter-cursor"></span>';
+                this.textSpan = this.element.querySelector('.typewriter-text');
+                this.cursorSpan = this.element.querySelector('.typewriter-cursor');
+                this.element.classList.add('typewriter-container');
+            }
+            
+            // 生成模拟拼音（基于字符，不依赖映射表）
+            getFakePinyin(char) {
+                const code = char.charCodeAt(0);
+                const syllables = ['a', 'ai', 'an', 'ang', 'ao', 'ba', 'bai', 'ban', 'bang', 'bao', 'bei', 'ben', 'beng', 'bi', 'bian', 'biao', 'bie', 'bin', 'bing', 'bo', 'bu', 'ca', 'cai', 'can', 'cang', 'cao', 'ce', 'cen', 'ceng', 'cha', 'chai', 'chan', 'chang', 'chao', 'che', 'chen', 'cheng', 'chi', 'chong', 'chou', 'chu', 'chua', 'chuai', 'chuan', 'chuang', 'chui', 'chun', 'chuo', 'ci', 'cong', 'cou', 'cu', 'cuan', 'cui', 'cun', 'cuo', 'da', 'dai', 'dan', 'dang', 'dao', 'de', 'dei', 'den', 'deng', 'di', 'dian', 'diao', 'die', 'ding', 'diu', 'dong', 'dou', 'du', 'duan', 'dui', 'dun', 'duo', 'e', 'ei', 'en', 'eng', 'er', 'fa', 'fan', 'fang', 'fei', 'fen', 'feng', 'fo', 'fou', 'fu', 'ga', 'gai', 'gan', 'gang', 'gao', 'ge', 'gei', 'gen', 'geng', 'gong', 'gou', 'gu', 'gua', 'guai', 'guan', 'guang', 'gui', 'gun', 'guo', 'ha', 'hai', 'han', 'hang', 'hao', 'he', 'hei', 'hen', 'heng', 'hong', 'hou', 'hu', 'hua', 'huai', 'huan', 'huang', 'hui', 'hun', 'huo', 'ji', 'jia', 'jian', 'jiang', 'jiao', 'jie', 'jin', 'jing', 'jiong', 'jiu', 'ju', 'juan', 'jue', 'jun', 'ka', 'kai', 'kan', 'kang', 'kao', 'ke', 'kei', 'ken', 'keng', 'kong', 'kou', 'ku', 'kua', 'kuai', 'kuan', 'kuang', 'kui', 'kun', 'kuo', 'la', 'lai', 'lan', 'lang', 'lao', 'le', 'lei', 'leng', 'li', 'lia', 'lian', 'liang', 'liao', 'lie', 'lin', 'ling', 'liu', 'lo', 'long', 'lou', 'lu', 'luan', 'lue', 'lun', 'luo', 'lv', 'm', 'ma', 'mai', 'man', 'mang', 'mao', 'me', 'mei', 'men', 'meng', 'mi', 'mian', 'miao', 'mie', 'min', 'ming', 'miu', 'mo', 'mou', 'mu', 'na', 'nai', 'nan', 'nang', 'nao', 'ne', 'nei', 'nen', 'neng', 'ng', 'ni', 'nian', 'niang', 'niao', 'nie', 'nin', 'ning', 'niu', 'nong', 'nou', 'nu', 'nuan', 'nun', 'nuo', 'nv', 'o', 'ou', 'pa', 'pai', 'pan', 'pang', 'pao', 'pei', 'pen', 'peng', 'pi', 'pian', 'piao', 'pie', 'pin', 'ping', 'po', 'pou', 'pu', 'qi', 'qia', 'qian', 'qiang', 'qiao', 'qie', 'qin', 'qing', 'qiong', 'qiu', 'qu', 'quan', 'que', 'qun', 'ran', 'rang', 'rao', 're', 'ren', 'reng', 'ri', 'rong', 'rou', 'ru', 'ruan', 'rui', 'run', 'ruo', 'sa', 'sai', 'san', 'sang', 'sao', 'se', 'sen', 'seng', 'sha', 'shai', 'shan', 'shang', 'shao', 'she', 'shei', 'shen', 'sheng', 'shi', 'shou', 'shu', 'shua', 'shuai', 'shuan', 'shuang', 'shui', 'shun', 'shuo', 'si', 'song', 'sou', 'su', 'suan', 'sui', 'sun', 'suo', 'ta', 'tai', 'tan', 'tang', 'tao', 'te', 'tei', 'teng', 'ti', 'tian', 'tiao', 'tie', 'ting', 'tong', 'tou', 'tu', 'tuan', 'tui', 'tun', 'tuo', 'wa', 'wai', 'wan', 'wang', 'wei', 'wen', 'weng', 'wo', 'wu', 'xi', 'xia', 'xian', 'xiang', 'xiao', 'xie', 'xin', 'xing', 'xiong', 'xiu', 'xu', 'xuan', 'xue', 'xun', 'ya', 'yan', 'yang', 'yao', 'ye', 'yi', 'yin', 'ying', 'yo', 'yong', 'you', 'yu', 'yuan', 'yue', 'yun', 'za', 'zai', 'zan', 'zang', 'zao', 'ze', 'zei', 'zen', 'zeng', 'zha', 'zhai', 'zhan', 'zhang', 'zhao', 'zhe', 'zhei', 'zhen', 'zheng', 'zhi', 'zhong', 'zhou', 'zhu', 'zhua', 'zhuai', 'zhuan', 'zhuang', 'zhui', 'zhun', 'zhuo', 'zi', 'zong', 'zou', 'zu', 'zuan', 'zui', 'zun', 'zuo'];
+                return syllables[code % syllables.length];
+            }
+            
+            // 生成错误拼音
+            getTypo(pinyin) {
+                if (pinyin.length < 2) return pinyin;
+                const idx = Math.floor(Math.random() * (pinyin.length - 1)) + 1;
+                const chars = 'abcdefghijklmnopqrstuvwxyz';
+                return pinyin.substring(0, idx) + chars[Math.floor(Math.random() * 26)] + pinyin.substring(idx + 1);
+            }
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+            
+            async type() {
+                if (this.hasTyped) return;
+                this.hasTyped = true;
+                this.cursorSpan.classList.add('typing');
+                
+                const chars = this.text.split('');
+                let displayHTML = '';
+                
+                for (let i = 0; i < chars.length; i++) {
+                    const char = chars[i];
+                    const isChinese = /[\u4e00-\u9fa5]/.test(char);
+                    const isLetter = /[a-zA-Z]/.test(char);
+                    
+                    if (isChinese) {
+                        // 中文：先显示拼音，可能打错，然后变成中文
+                        const pinyin = this.getFakePinyin(char);
+                        
+                        // 30% 概率打错拼音
+                        if (Math.random() < 0.3 && pinyin.length > 1) {
+                            const typo = this.getTypo(pinyin);
+                            // 输入错误拼音
+                            for (let j = 0; j < typo.length; j++) {
+                                this.textSpan.innerHTML = displayHTML + '<span class="typing-char">' + typo.substring(0, j+1) + '</span>';
+                                await this.sleep(this.speed * 0.6);
+                            }
+                            // 停顿发现错误
+                            await this.sleep(this.speed * 2);
+                            // 退格删除
+                            for (let j = typo.length; j >= 0; j--) {
+                                const keep = typo.substring(0, j);
+                                const deleted = typo.substring(j);
+                                this.textSpan.innerHTML = displayHTML + 
+                                    (keep ? '<span class="typing-char">' + keep + '</span>' : '') +
+                                    (deleted ? '<span class="backspace-char">' + deleted + '</span>' : '');
+                                await this.sleep(this.speed * 0.4);
+                            }
+                            // 重打正确拼音
+                            for (let j = 0; j < pinyin.length; j++) {
+                                this.textSpan.innerHTML = displayHTML + '<span class="typing-char">' + pinyin.substring(0, j+1) + '</span>';
+                                await this.sleep(this.speed * 0.6);
+                            }
+                            await this.sleep(this.speed);
+                        } else {
+                            // 正常输入拼音
+                            for (let j = 0; j < pinyin.length; j++) {
+                                this.textSpan.innerHTML = displayHTML + '<span class="typing-char">' + pinyin.substring(0, j+1) + '</span>';
+                                await this.sleep(this.speed * 0.5);
+                            }
+                            await this.sleep(this.speed * 0.8);
+                        }
+                        
+                        // 拼音变中文（带字体故障）
+                        const fontClass = this.fontClasses[Math.floor(Math.random() * this.fontClasses.length)];
+                        this.textSpan.innerHTML = displayHTML + '<span class="' + fontClass + '" style="animation: char-switch 0.2s steps(2)">' + char + '</span>';
+                        await this.sleep(150);
+                        
+                        displayHTML += '<span>' + char + '</span>';
+                        this.textSpan.innerHTML = displayHTML;
+                        
+                    } else if (isLetter) {
+                        // 英文字母：逐个显示，可能显示故障符号
+                        if (Math.random() < 0.1) {
+                            const glitch = this.glitchChars[Math.floor(Math.random() * this.glitchChars.length)];
+                            this.textSpan.innerHTML = displayHTML + '<span class="typing-char">' + glitch + '</span>';
+                            await this.sleep(this.speed * 0.5);
+                        }
+                        displayHTML += char;
+                        this.textSpan.innerHTML = displayHTML;
+                        await this.sleep(this.speed * 0.8);
+                        
+                    } else {
+                        // 其他字符（空格、标点等）
+                        displayHTML += char;
+                        this.textSpan.innerHTML = displayHTML;
+                        await this.sleep(this.speed * 0.5);
+                    }
+                }
+                
+                this.cursorSpan.classList.remove('typing');
+                this.element.classList.add('typing-complete');
+                
+                // 完成后启动间歇性字体故障
+                this.startFontGlitch();
+                
+                setTimeout(() => {
+                    this.cursorSpan.style.opacity = '0';
+                }, 800);
+            }
+            
+            startFontGlitch() {
+                // 每2-5秒随机挑几个字切换字体
+                setInterval(() => {
+                    if (Math.random() < 0.4) {
+                        const spans = this.textSpan.querySelectorAll('span');
+                        if (spans.length === 0) return;
+                        
+                        // 随机选1-3个字
+                        const count = Math.floor(Math.random() * 3) + 1;
+                        for (let i = 0; i < count; i++) {
+                            const idx = Math.floor(Math.random() * spans.length);
+                            const original = spans[idx].style.cssText;
+                            const fontClass = this.fontClasses[Math.floor(Math.random() * this.fontClasses.length)];
+                            
+                            spans[idx].className = fontClass;
+                            spans[idx].style.textShadow = '2px 0 #b829dd, -2px 0 #00d9ff';
+                            
+                            setTimeout(() => {
+                                if (spans[idx]) {
+                                    spans[idx].className = '';
+                                    spans[idx].style.cssText = original;
+                                }
+                            }, 200);
+                        }
+                    }
+                }, 2000 + Math.random() * 3000);
+            }
+        }
+
+        class DescTypewriter {
+            constructor(element, options = {}) {
+                this.element = element;
+                this.text = element.innerText;
+                this.speed = options.speed || 25;
+                this.hasTyped = false;
+                this.init();
+            }
+            init() { this.element.innerHTML = ''; }
+            async type() {
+                if (this.hasTyped) return;
+                    this.hasTyped = true;
+                const chars = this.text.split('');
+                for (let i = 0; i < chars.length; i++) {
+                    const char = chars[i];
+                    if (Math.random() < 0.08 && char !== ' ') {
+                        this.element.textContent += Math.random() > 0.5 ? '1' : '0';
+                        await new Promise(r => setTimeout(r, 20));
+                        this.element.textContent = this.element.textContent.slice(0, -1);
+                    }
+                    this.element.textContent += char;
+                    await new Promise(r => setTimeout(r, /[，。！？.,!?;:]/.test(char) ? this.speed * 2.5 : this.speed + Math.random() * 15));
+                }
+            }
+        }
+        
+        class GlitchJumpManager {
+            constructor(elements, options = {}) {
+                this.elements = Array.from(elements);
+                this.minInterval = options.minInterval || 2500;
+                this.maxInterval = options.maxInterval || 7000;
+                this.duration = options.duration || 250;
+                this.activeElements = new Set();
+                this.init();
+            }
+            init() {
+                this.elements.forEach(el => el.classList.add('glitch-jump'));
+                this.scheduleNext();
+            }
+            scheduleNext() {
+                const delay = this.minInterval + Math.random() * (this.maxInterval - this.minInterval);
+                setTimeout(() => { this.trigger(); this.scheduleNext(); }, delay);
+            }
+            trigger() {
+                const available = this.elements.filter(el => el.classList.contains('typing-complete') && !this.activeElements.has(el));
+                if (available.length === 0) return;
+                const el = available[Math.floor(Math.random() * available.length)];
+                this.activeElements.add(el);
+                el.classList.add('active');
+                setTimeout(() => { el.classList.remove('active'); this.activeElements.delete(el); }, this.duration);
+            }
+        }
+        
+        const typewriters = new Map();
+        const descTypewriters = new Map();
+        
+        function initTypewriters() {
+            document.querySelectorAll('.phase-section').forEach(section => {
+                const title = section.querySelector('.phase-title');
+                const desc = section.querySelector('.phase-desc');
+                if (title) typewriters.set(section.id, new CyberTypewriter(title, { speed: 40, scrambleChance: 0.35 }));
+                if (desc) descTypewriters.set(section.id, new DescTypewriter(desc, { speed: 30 }));
+            });
+            new GlitchJumpManager(document.querySelectorAll('.phase-title'));
+        }
+        
+        function triggerTypewriter(sectionId) {
+            const tw = typewriters.get(sectionId);
+            const dt = descTypewriters.get(sectionId);
+            if (tw) setTimeout(() => tw.type(), 400);
+            if (dt) setTimeout(() => dt.type(), 900);
+        }
+        
+        // ========== 系统结束 ==========
+        
         gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
-        window.addEventListener('load', () => { initCyberTransition(); initLoaderAnimation(); });
+        window.addEventListener('load', () => { 
+            initTypewriters();
+            initCyberTransition(); 
+            initLoaderAnimation(); 
+            setTimeout(() => triggerTypewriter('phase1'), 2000);
+        });
         document.getElementById('loader').addEventListener('click', () => { gsap.globalTimeline.timeScale(3); });
 
         // Custom Cursor (仅桌面端)
@@ -895,6 +1212,7 @@
                     section.classList.add('revealed'); 
                     section.querySelector('.content')?.classList.add('revealed'); 
                     section.querySelector('.phase-tag')?.classList.add('revealed'); 
+                    triggerTypewriter(section.id);
                 },
                 onEnterBack: () => { section.classList.add('revealed'); }
             });
